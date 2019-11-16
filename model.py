@@ -8,7 +8,6 @@ from bayesian_unet import bayesian_unet
 from bayesian_vnet import bayesian_vnet
 from dropout_unet import dropout_unet
 from dropout_vnet import dropout_vnet
-from ensemble_vnet import ensemble_vnet
 from utils import ex, get_latest_file, variational_free_energy_loss
 
 
@@ -50,8 +49,7 @@ def load_model(input_shape, weights_path, net, prior_std,
 @ex.capture
 def get_model(input_shape, weights_dir, resume, bayesian,
               vnet, prior_std, kernel_size, activation, padding,
-              alpha, ensemble, num_gpus,
-              scale_factor=1, weights_path=None):
+              alpha, num_gpus, scale_factor=1, weights_path=None):
     """Loads or creates model.
 
     If a weights path is specified, loads from that path. Otherwise, loads
@@ -61,20 +59,8 @@ def get_model(input_shape, weights_dir, resume, bayesian,
     os.makedirs(weights_dir + "/bayesian", exist_ok=True)
     os.makedirs(weights_dir + "/dropout", exist_ok=True)
 
-    # Sets variables for ensemble model.
-    if ensemble:
-        checkpoint_path = (weights_dir + "/ensemble/ensemble-{epoch:02d}"
-        "-{val_acc:.3f}-{val_loss:.0f}.h5")
-
-        if weights_path:
-            latest_weights_path = weights_path
-        else:
-            latest_weights_path = get_latest_file(weights_dir + "/bayesian")
-
-        net = ensemble_vnet
-
     # Sets variables for bayesian model.
-    elif bayesian:
+    if bayesian:
         checkpoint_path = (weights_dir + "/bayesian/bayesian-{epoch:02d}"
         "-{val_acc:.3f}-{val_loss:.0f}.h5")
 
