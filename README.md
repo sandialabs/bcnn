@@ -1,5 +1,7 @@
 # 3D Bayesian CNNs for Uncertainty Quantification of Binary Segmentations for Material Simulations
 
+![Diagram of BCNN uncertainty](https://raw.githubusercontent.com/sandialabs/bcnn/master/unc.PNG)
+
 This repository provides the framework for the training, testing, analysis, and comparison of uncertainty quantification in 3D segmentations via Monte Carlo dropout networks and novel Bayesian convolutional neural networks (BCNNs). BCNNs leverage the TensorFlow Probability library to learn distributions over the weights, thus performing actual Bayesian inference by learning a posterior distribution rather than approximating one like Monte Carlo dropout.  
 
 ### Data
