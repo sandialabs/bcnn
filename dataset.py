@@ -30,6 +30,8 @@ def chunks(arr, batch_size, num_gpus, step, window):
         if z_flag:
             break
         elif z > z_max:
+            if z_max == 0 or z_max % (window[0] // step) == 0:
+                break
             z = z_max
             z_flag = True
 
@@ -39,6 +41,8 @@ def chunks(arr, batch_size, num_gpus, step, window):
             if x_flag:
                 break
             elif x > x_max:
+                if x_max == 0 or x_max % (window[1] // step) == 0:
+                    break
                 x = x_max
                 x_flag = True
 
@@ -46,6 +50,8 @@ def chunks(arr, batch_size, num_gpus, step, window):
                 if y_flag:
                     break
                 elif y > y_max:
+                    if y_max == 0 or y_max % (window[2] // step) == 0:
+                        break
                     y = y_max
                     y_flag = True
 

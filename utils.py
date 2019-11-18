@@ -8,7 +8,7 @@ from tensorflow.keras.losses import binary_crossentropy
 import tensorflow_probability as tfp
 
 ex = Experiment()
-ex.add_config("configs/graphite_config.json")
+ex.add_config("configs/toy_config.json")
 
 
 def round_down(num, factor):

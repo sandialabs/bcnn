@@ -1,3 +1,4 @@
+from math import ceil
 import os
 
 import colorcet as cc
@@ -158,18 +159,65 @@ def predict(model, test, test_targets, test_coords, test_shape,
             for j in range(0, mc_samples, batch_size):
                 chunk_samples[j:j+batch_size] = model.predict_on_batch(batch)
 
+            # Discards poor edge predictions.
+            # I use 5% but this can be changed.
+            trimmed_shape = input_shape
+            border1 = ceil(input_shape[0] * 0.05)
+            border2 = ceil(input_shape[1] * 0.05)
+            border3 = ceil(input_shape[2] * 0.05)
+
+            # Checks edge cases on edge discarding.
+            # For example, we don't want to throw away an edge
+            # if it is the very edge of the volume, because that
+            # edge may only get predicted on once.
+            if coords[0] != 0 and coords[0] != test_shape[0] - input_shape[0]:
+                chunk_samples = chunk_samples[:, border1:-border1, :, :, :]
+                coords = [coords[0] + border1, coords[1], coords[2]]
+                trimmed_shape = [trimmed_shape[0] - (2 * border1), trimmed_shape[1], trimmed_shape[2], 1]
+            elif coords[0] != 0:
+                chunk_samples = chunk_samples[:, border1:, :, :, :]
+                coords = [coords[0] + border1, coords[1], coords[2]]
+                trimmed_shape = [trimmed_shape[0] - border1, trimmed_shape[1], trimmed_shape[2], 1]
+            elif coords[0] != test_shape[0] - input_shape[0]:
+                chunk_samples = chunk_samples[:, :-border1, :, :, :]
+                trimmed_shape = [trimmed_shape[0] - border1, trimmed_shape[1], trimmed_shape[2], 1]
+
+            if coords[1] != 0 and coords[1] != test_shape[1] - input_shape[1]:
+                chunk_samples = chunk_samples[:, :, border2:-border2, :, :]
+                coords = [coords[0], coords[1] + border2, coords[2]]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1] - (2 * border2), trimmed_shape[2], 1]
+            elif coords[1] != 0:
+                chunk_samples = chunk_samples[:, :, border2:, :, :]
+                coords = [coords[0], coords[1] + border2, coords[2]]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1] - border2, trimmed_shape[2], 1]
+            elif coords[1] != test_shape[1] - input_shape[1]:
+                chunk_samples = chunk_samples[:, :, :-border2, :, :]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1] - border2, trimmed_shape[2], 1]
+
+            if coords[2] != 0 and coords[2] != test_shape[2] - input_shape[2]:
+                chunk_samples = chunk_samples[:, :, :, border3:-border3, :]
+                coords = [coords[0], coords[1], coords[2] + border3]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1], trimmed_shape[2] - (2 * border3), 1]
+            elif coords[2] != 0:
+                chunk_samples = chunk_samples[:, :, :, border3:, :]
+                coords = [coords[0], coords[1], coords[2] + border3]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1], trimmed_shape[2] - border3, 1]
+            elif coords[2] != test_shape[2] - input_shape[2]:
+                chunk_samples = chunk_samples[:, :, :, :-border3, :]
+                trimmed_shape = [trimmed_shape[0], trimmed_shape[1], trimmed_shape[2] - border3, 1]
+
             # Increments each voxel in the counts array.
-            counts = add_chunk_to_arr(counts, np.ones(input_shape),
-                                      coords, input_shape)
+            counts = add_chunk_to_arr(counts, np.ones(trimmed_shape),
+                                      coords, trimmed_shape)
 
             # Updates the sigmoid volume with the voxel means.
             chunk_mean = np.mean(chunk_samples, axis=0)
-            sigmoid = add_chunk_to_arr(sigmoid, chunk_mean, coords, input_shape)
+            sigmoid = add_chunk_to_arr(sigmoid, chunk_mean, coords, trimmed_shape)
 
             # Updates the percentile volumes.
             percentile_samples = np.percentile(chunk_samples,
                                                percentile_points, axis=0)
-            percentiles = [add_chunk_to_arr(p, s, coords, input_shape)
+            percentiles = [add_chunk_to_arr(p, s, coords, trimmed_shape)
                            for p, s in zip(percentiles, percentile_samples)]
 
         # Divides each voxel by the number of times it was predicted.
@@ -195,7 +243,6 @@ def predict(model, test, test_targets, test_coords, test_shape,
     pred[pred > 0.5] = 1.
     pred[pred <= 0.5] = 0.
 
-    # TODO: Experiment with different percentiles here.
     twenty = percentiles[num_percentiles // 5]
     eighty = percentiles[num_percentiles - ((num_percentiles // 5) + 1)]
     unc = eighty - twenty
