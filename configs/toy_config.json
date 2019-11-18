@@ -29,8 +29,8 @@
     "epochs": 10,
     "initial_epoch": 0,
     "initial_learning_rate": 0.001,
-    "batch_size": 2,
-    "num_gpus": 1,
+    "batch_size": 3,
+    "num_gpus": 2,
     "mc_samples": 12,
     "num_percentiles": 11
 }
