@@ -2,7 +2,7 @@
 
 ![Diagram of BCNN uncertainty](https://raw.githubusercontent.com/sandialabs/bcnn/master/unc.PNG)
 
-This repository provides the framework for the training, testing, analysis, and comparison of uncertainty quantification in 3D segmentations via Monte Carlo dropout networks and novel Bayesian convolutional neural networks (BCNNs). BCNNs leverage the TensorFlow Probability library to learn distributions over the weights, thus performing actual Bayesian inference by learning a posterior distribution rather than approximating one like Monte Carlo dropout.  
+This repository provides the framework for the training, testing, analysis, and comparison of uncertainty quantification in 3D segmentations via Monte Carlo dropout networks and novel Bayesian convolutional neural networks (BCNNs). BCNNs leverage the TensorFlow Probability library to learn distributions over the weights, thus performing actual Bayesian inference by learning a posterior distribution rather than approximating one like Monte Carlo dropout. Our BCNN is the first-ever Bayesian CNN with variational inference in 3D. [Paper here](https://arxiv.org/abs/1910.10793).
 
 ## Instructions to run minimum working example
 1. [Install Anaconda](https://docs.anaconda.com/anaconda/install/linux/)
