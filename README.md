@@ -10,7 +10,7 @@ This repository provides the framework for the training, testing, analysis, and 
 3. Install package dependencies with `pip install -r requirements.txt`
 4. Generate the toy dataset with `python generate_toy_data.py`
 5. If you only have one GPU, set `"num_gpus"=1` and `batch_size=2` in `configs/toy_config.json` (it's at the bottom)
-5. Run `./toy_train_test.sh`. This shell file "chunks" the large volumes and trains both a Bayesian and Monte Carlo dropout network, then compares the two on the test set. It saves model weights, prediction arrays, and sample images. In particular, check out the `toy_images/*/*_unc.png` images to see the differences in the uncertainty quantification output from both models. If you get an out-of-memory error, reduce the `"batch_size"` in `configs/toy_config.json`, delete `toy_data`, and start from Step 4.
+5. Run `./toy_train_test.sh`. This shell file "chunks" the large volumes and trains both a Bayesian and Monte Carlo dropout network, then compares the two on the test set. It saves model weights, prediction arrays, and sample images. In particular, check out the `toy_images/*/*_unc.png` images to see the differences in the uncertainty quantification output from both models. The BCNN and MCDN give approximately equivalent UQ in the toy example, but as the domains become more difficult, the BCNN achieves a clearly superior UQ performance. If you get an out-of-memory error, reduce the `"batch_size"` in `configs/toy_config.json`, delete `toy_data`, and start from Step 4.
 
 ### Data
 
