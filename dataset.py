@@ -6,7 +6,7 @@ from utils import absolute_file_paths, ex, round_down, standardize
 
 
 @ex.capture
-def chunks(arr, batch_size, num_gpus, step, window):
+def chunks(arr, batch_size, num_gpus, step, window, trim=True):
     """Chunks a 4D numpy array into smaller 4D arrays."""
 
     new = []
@@ -62,10 +62,11 @@ def chunks(arr, batch_size, num_gpus, step, window):
     new = np.asarray(new)
 
     # Avoids https://github.com/keras-team/keras/issues/11434
-    last_batch_gpus = (new.shape[0] % batch_size) % num_gpus
-    if last_batch_gpus != 0:
-        new = new[:-last_batch_gpus, :, :, :, :]
-        coords = coords[:-last_batch_gpus]
+    if trim:
+        last_batch_gpus = (new.shape[0] % batch_size) % num_gpus
+        if last_batch_gpus != 0:
+            new = new[:-last_batch_gpus, :, :, :, :]
+            coords = coords[:-last_batch_gpus]
 
     return new, coords, shape
 
@@ -104,10 +105,9 @@ def load_data(files, vnet, batch_size, num_gpus, norm):
 
     # Optionally standardizes data.
     if norm:
-        arr = np.asarray([standardize(np.load(file)) for file in files])
+        arr = [standardize(np.load(file)) for file in files]
     else:
-        arr = np.asarray([np.load(file) for file in files])
-
+        arr = [np.load(file) for file in files]
     if len(arr) == 1:
         arr = arr[0]
     # If all the same shape, concat.
@@ -117,14 +117,19 @@ def load_data(files, vnet, batch_size, num_gpus, norm):
     elif vnet:
         # TODO: Somehow save coords and orig_shape for each sub_arr.
         # Low priority because this block only used for training data right now.
-        if arr.ndim == 5 and arr.shape[4] == 2:
+        if arr[0].ndim == 4 and arr[0].shape[3] == 2:
             arr = [sub_arr[:, :, :, 1] for sub_arr in arr]
-        elif arr.ndim == 5:
+        elif arr[0].ndim == 4:
             arr = [sub_arr[:, :, :, 0] for sub_arr in arr]
         arr = [np.expand_dims(sub_arr, axis=3) for sub_arr in arr]
 
-        chunked = [chunks(sub_arr) for sub_arr in arr]
+        chunked = [chunks(sub_arr, trim=False) for sub_arr in arr]
         arr = np.concatenate([chunk[0] for chunk in chunked])
+
+        # Avoids https://github.com/keras-team/keras/issues/11434
+        last_batch_gpus = (arr.shape[0] % batch_size) % num_gpus
+        if last_batch_gpus != 0:
+            arr = arr[:-last_batch_gpus, :, :, :, :]
 
         return arr, None, None
 
@@ -145,9 +150,10 @@ def load_data(files, vnet, batch_size, num_gpus, norm):
     else:
         # Avoids https://github.com/keras-team/keras/issues/11434
         last_batch_gpus = (arr.shape[0] % batch_size) % num_gpus
-        arr = arr[:-last_batch_gpus, :, :, :]
-        coords = None
-        orig_shape = arr.shape
+        if last_batch_gpus != 0:
+            arr = arr[:-last_batch_gpus, :, :, :]
+            coords = None
+            orig_shape = arr.shape
 
     return arr, coords, orig_shape
 
@@ -231,13 +237,12 @@ def get_train_data(data_dir):
                                                 valid_path,
                                                 train_targets_path,
                                                 valid_targets_path)
-
     input_shape = train[0].shape
 
     return input_shape, train, valid, train_targets, valid_targets
 
 
-@ex.capture
+@ex.automain
 def get_test_data(data_dir):
     """Loads or creates test data."""
     print ('in get_test_data')
