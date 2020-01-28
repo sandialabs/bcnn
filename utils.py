@@ -59,7 +59,7 @@ def standardize(raw):
     return (raw - np.mean(raw)) / np.std(raw)
 
 
-def variational_free_energy_loss(model, scale_factor, alpha=0.5):
+def variational_free_energy_loss(model, scale_factor, alpha=1):
     """Defines variational free energy loss.
 
     Sum of KL divergence (supplied by tfp) and binary cross-entropy.
@@ -71,7 +71,7 @@ def variational_free_energy_loss(model, scale_factor, alpha=0.5):
 
     def loss(y_true, y_pred):
         bce = binary_crossentropy(y_true, y_pred)
-        return alpha * kl + (1 - alpha) * bce
+        return alpha * kl + (1. / alpha) * bce
 
     return loss
 
