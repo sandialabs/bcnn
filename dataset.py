@@ -23,7 +23,6 @@ def chunks(arr, batch_size, num_gpus, step, window, trim=True):
     z_flag = x_flag = y_flag = False
 
     # Creates chunks via a sliding rectangular prism window.
-    # There's probably a more elegant way to do this...
     for z in range(0, shape[0], window[0] // step):
         x_flag = y_flag = False
 
