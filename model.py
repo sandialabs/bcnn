@@ -27,7 +27,7 @@ def load_model(input_shape, weights_path, net, prior_std,
                     activation=activation,
                     padding=padding,
                     prior_std=prior_std)
-        model = multi_gpu_model(model, gpus=2)
+        model = multi_gpu_model(model, gpus=num_gpus)
 
         # Converts .h5 file to single-gpu.
         model.load_weights(weights_path)
