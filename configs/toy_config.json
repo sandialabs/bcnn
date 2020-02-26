@@ -13,8 +13,8 @@
     "images_dir": "toy_images",
     
     "norm": true,
-    "step": 2,
-    "window": [88, 176, 176],
+    "step": 3,
+    "window": [16, 32, 32],
 
     "resume": true,
     "bayesian": true,
@@ -24,13 +24,19 @@
     "kernel_size": 3,
     "activation": "relu",
     "padding": "SAME",
-    "alpha": 1,
+    "kl_alpha": 0,
+    "kl_start_epoch": 2,
+    "kl_alpha_increase_per_epoch": 0.5,
 
-    "epochs": 20,
+    "epochs": 5,
     "initial_epoch": 0,
     "initial_learning_rate": 0.001,
-    "batch_size": 3,
+    "lr_decay_start_epoch": 10,
+    "batch_size": 16,
     "num_gpus": 2,
     "mc_samples": 48,
-    "num_percentiles": 11
+    "num_percentiles": 11,
+    "border_trim": 0.1,
+    "lower_percentile": 30,
+    "upper_percentile": 70
 }

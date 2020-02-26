@@ -4,6 +4,7 @@ import numpy as np
 from sacred import Experiment
 import tensorflow as tf
 import tensorflow.keras.backend as K
+from tensorflow.keras.callbacks import Callback
 from tensorflow.keras.losses import binary_crossentropy
 import tensorflow_probability as tfp
 
@@ -59,7 +60,7 @@ def standardize(raw):
     return (raw - np.mean(raw)) / np.std(raw)
 
 
-def variational_free_energy_loss(model, scale_factor, alpha=0.5):
+def variational_free_energy_loss(model, scale_factor, kl_alpha):
     """Defines variational free energy loss.
 
     Sum of KL divergence (supplied by tfp) and binary cross-entropy.
@@ -71,7 +72,7 @@ def variational_free_energy_loss(model, scale_factor, alpha=0.5):
 
     def loss(y_true, y_pred):
         bce = binary_crossentropy(y_true, y_pred)
-        return alpha * kl + (1 - alpha) * bce
+        return bce + K.get_value(kl_alpha) * kl
 
     return loss
 
@@ -89,3 +90,13 @@ def normal_prior(prior_std):
 
     return prior_fn
 
+class AnnealingCallback(Callback):
+    def __init__(self, kl_alpha, kl_start_epoch, kl_alpha_increase_per_epoch):
+        self.kl_alpha = kl_alpha
+        self.kl_start_epoch = kl_start_epoch
+        self.kl_alpha_increase_per_epoch = kl_alpha_increase_per_epoch
+    def on_epoch_end (self, epoch, logs={}):
+        if epoch >= self.kl_start_epoch - 2:
+            new_kl_alpha = min(K.get_value(self.kl_alpha) + self.kl_alpha_increase_per_epoch, 1.)
+            K.set_value(self.kl_alpha, new_kl_alpha)
+        print ("Current KL Weight is " + str(K.get_value(self.kl_alpha)))

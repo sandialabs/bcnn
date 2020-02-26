@@ -26,7 +26,7 @@ def plots(bayesian, predict_dir, images_dir, num_percentiles, lower_percentile, 
     test_targets = np.load(predict_dir + "/test_targets.npy")
 
     lower_index = max(0, round(num_percentiles * (lower_percentile / 100)) - 1)
-    upper_index = min(num_percentiles, round(num_percentiles * (upper_percentile / 100)) - 1)
+    upper_index = min(num_percentiles - 1, round(num_percentiles * (upper_percentile / 100)) - 1)
     lower = percentiles[lower_index]
     upper = percentiles[upper_index]
 
@@ -85,7 +85,7 @@ def save_predictions(sigmoid, pred, percentiles, unc, test, test_targets,
     np.save(predict_dir + "/test_targets.npy", test_targets)
 
     lower_index = max(0, round(num_percentiles * (lower_percentile / 100)) - 1)
-    upper_index = min(num_percentiles, round(num_percentiles * (upper_percentile / 100)) - 1)
+    upper_index = min(num_percentiles - 1, round(num_percentiles * (upper_percentile / 100)) - 1)
     lower = percentiles[lower_index]
     upper = percentiles[upper_index]
 
@@ -276,7 +276,7 @@ def test(weights_path, batch_size):
         return
 
     # Loads or creates model.
-    model, checkpoint_path = get_model(input_shape,
+    model, checkpoint_path, _ = get_model(input_shape,
                                        scale_factor=len(test)/batch_size,
                                        weights_path=weights_path)
 

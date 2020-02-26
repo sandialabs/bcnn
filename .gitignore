@@ -1,0 +1,5 @@
+__pycache__
+toy_data/
+toy_weights/
+toy_predict/
+toy_images/

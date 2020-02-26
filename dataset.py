@@ -23,33 +23,33 @@ def chunks(arr, batch_size, num_gpus, step, window, trim=True):
     z_flag = x_flag = y_flag = False
 
     # Creates chunks via a sliding rectangular prism window.
-    for z in range(0, shape[0], window[0] // step):
+    for z in range(0, shape[0], int(window[0] // step)):
         x_flag = y_flag = False
 
         if z_flag:
             break
         elif z > z_max:
-            if z_max == 0 or z_max % (window[0] // step) == 0:
+            if z_max == 0 or z_max % int(window[0] // step) == 0:
                 break
             z = z_max
             z_flag = True
 
-        for x in range(0, shape[1], window[1] // step):
+        for x in range(0, shape[1], int(window[1] // step)):
             y_flag = False
 
             if x_flag:
                 break
             elif x > x_max:
-                if x_max == 0 or x_max % (window[1] // step) == 0:
+                if x_max == 0 or x_max % int(window[1] // step) == 0:
                     break
                 x = x_max
                 x_flag = True
 
-            for y in range(0, shape[2], window[2] // step):
+            for y in range(0, shape[2], int(window[2] // step)):
                 if y_flag:
                     break
                 elif y > y_max:
-                    if y_max == 0 or y_max % (window[2] // step) == 0:
+                    if y_max == 0 or y_max % int(window[2] // step) == 0:
                         break
                     y = y_max
                     y_flag = True
@@ -107,6 +107,7 @@ def load_data(files, vnet, batch_size, num_gpus, norm):
         arr = [standardize(np.load(file)) for file in files]
     else:
         arr = [np.load(file) for file in files]
+
     if len(arr) == 1:
         arr = arr[0]
     # If all the same shape, concat.

@@ -1,5 +1,6 @@
 import os
 
+import tensorflow.keras.backend as K
 from tensorflow.keras.losses import binary_crossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import multi_gpu_model
@@ -49,7 +50,9 @@ def load_model(input_shape, weights_path, net, prior_std,
 @ex.capture
 def get_model(input_shape, weights_dir, resume, bayesian,
               vnet, prior_std, kernel_size, activation, padding,
-              alpha, num_gpus, scale_factor=1, weights_path=None):
+              kl_alpha, kl_start_epoch, kl_alpha_increase_per_epoch,
+              ensemble, num_gpus, initial_epoch,
+              scale_factor=1, weights_path=None):
     """Loads or creates model.
 
     If a weights path is specified, loads from that path. Otherwise, loads
@@ -59,8 +62,20 @@ def get_model(input_shape, weights_dir, resume, bayesian,
     os.makedirs(weights_dir + "/bayesian", exist_ok=True)
     os.makedirs(weights_dir + "/dropout", exist_ok=True)
 
+    # Sets variables for ensemble model.
+    if ensemble:
+        checkpoint_path = (weights_dir + "/ensemble/ensemble-{epoch:02d}"
+        "-{val_acc:.3f}-{val_loss:.0f}.h5")
+
+        if weights_path:
+            latest_weights_path = weights_path
+        else:
+            latest_weights_path = get_latest_file(weights_dir + "/bayesian")
+
+        net = ensemble_vnet
+
     # Sets variables for bayesian model.
-    if bayesian:
+    elif bayesian:
         checkpoint_path = (weights_dir + "/bayesian/bayesian-{epoch:02d}"
         "-{val_acc:.3f}-{val_loss:.0f}.h5")
 
@@ -102,8 +117,13 @@ def get_model(input_shape, weights_dir, resume, bayesian,
 
     # Sets loss function.
     if bayesian:
-        loss = variational_free_energy_loss(model, scale_factor, alpha)
+        if initial_epoch >= kl_start_epoch:
+            kl_alpha = min(1., kl_alpha + (initial_epoch - kl_start_epoch) * kl_alpha_increase_per_epoch)
+
+        kl_alpha = K.variable(kl_alpha)
+        loss = variational_free_energy_loss(model, scale_factor, kl_alpha)
     else:
+        kl_alpha = None
         loss = binary_crossentropy
 
     # Compiles model with Adam optimizer.
@@ -111,5 +131,5 @@ def get_model(input_shape, weights_dir, resume, bayesian,
                   optimizer=Adam(),
                   metrics=["accuracy"])
 
-    return model, checkpoint_path
+    return model, checkpoint_path, kl_alpha
 
