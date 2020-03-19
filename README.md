@@ -1,4 +1,4 @@
-# 3D Bayesian CNNs for Uncertainty Quantification of Binary Segmentations for Material Simulations
+# 3D Bayesian CNNs for Credible Geometric Uncertainty
 
 ![Diagram of BCNN uncertainty](https://raw.githubusercontent.com/sandialabs/bcnn/master/unc.PNG)
 
