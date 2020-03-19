@@ -35,7 +35,6 @@
     "batch_size": 16,
     "num_gpus": 2,
     "mc_samples": 48,
-    "num_percentiles": 11,
     "border_trim": 0.1,
     "lower_percentile": 30,
     "upper_percentile": 70
